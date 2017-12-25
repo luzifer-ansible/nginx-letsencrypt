@@ -1,0 +1,10 @@
+---
+
+nginx_letsencrypt_buffer: 720h
+nginx_letsencrypt_email: mail@example.com
+nginx_letsencrypt_log_level: debug
+nginx_letsencrypt_port: 5002
+nginx_letsencrypt_storage_dir: /data/ssl
+nginx_letsencrypt_version: v0.1.4
+
+...

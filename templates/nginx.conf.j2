@@ -1,0 +1,126 @@
+include /etc/nginx/modules-enabled/*.conf;
+
+user              {{ nginx_letsencrypt_config.user | default('www-data') }};
+worker_processes  {{ nginx_letsencrypt_config.worker_processes | default('auto') }};
+pid               {{ nginx_letsencrypt_config.pid_file | default('/run/nginx.pid') }};
+
+events {
+  worker_connections  {{ nginx_letsencrypt_config.worker_connections | default('768') }};
+  multi_accept        {{ nginx_letsencrypt_config.multi_accept | default('off') }};
+}
+
+http {
+
+  ##
+  # Basic Settings
+  ##
+
+  resolver            {{ nginx_letsencrypt_config.resolver | default('127.0.0.1 ipv6=off') }};
+  sendfile            {{ nginx_letsencrypt_config.sendfile | default('on') }};
+  tcp_nopush          {{ nginx_letsencrypt_config.tcp_nopush | default('on') }};
+  tcp_nodelay         {{ nginx_letsencrypt_config.tcp_nodelay | default('on') }};
+  keepalive_timeout   {{ nginx_letsencrypt_config.keepalive_timeout | default('65') }};
+  types_hash_max_size {{ nginx_letsencrypt_config.types_hash_max_size | default('2048') }};
+  server_tokens       {{ nginx_letsencrypt_config.server_tokens | default('off') }};
+
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+
+  ##
+  # SSL Settings
+  ##
+
+  ssl_protocols             {{ nginx_letsencrypt_config.ssl_protocols | default('TLSv1.2') }};
+  ssl_ciphers               {{ nginx_letsencrypt_config.ssl_ciphers | default('ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256') }};
+  ssl_prefer_server_ciphers {{ nginx_letsencrypt_config.ssl_prefer_server_ciphers | default('on') }};
+  ssl_buffer_size           {{ nginx_letsencrypt_config.ssl_buffer_size | default('8k') }};
+  ssl_stapling              {{ nginx_letsencrypt_config.ssl_stapling | default('on') }};
+  ssl_stapling_verify       {{ nginx_letsencrypt_config.ssl_stapling_verify | default('on') }};
+
+  ##
+  # Logging Settings
+  ##
+
+  log_format combined_w_host  '$remote_addr - $remote_user [$time_local] '
+                              '"$request" $status $body_bytes_sent '
+                              '"$http_referer" "$http_user_agent" "$http_host"';
+
+  access_log  /var/log/nginx/access.log combined_w_host;
+  error_log   /var/log/nginx/error.log;
+
+  ##
+  # Gzip Settings
+  ##
+
+  gzip            {{ nginx_letsencrypt_config.gzip | default('on') }};
+  gzip_disable    {{ nginx_letsencrypt_config.gzip_disable | default('"msie6"') }};
+  gzip_comp_level {{ nginx_letsencrypt_config.gzip_comp_level | default('1') }};
+  gzip_proxied    {{ nginx_letsencrypt_config.gzip_proxied | default('off') }};
+  gzip_min_length {{ nginx_letsencrypt_config.gzip_min_length | default('20') }};
+  gzip_vary       {{ nginx_letsencrypt_config.gzip_vary | default('off') }};
+  gzip_types      {{ nginx_letsencrypt_config.gzip_types | default('text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript')}};
+
+  ##
+  # Custom settings
+  ##
+
+{% if nginx_letsencrypt_config.http_lines is defined %}
+{% for line in nginx_letsencrypt_config.http_lines %}
+  {{ line }}
+{% endfor %}
+{% endif %}
+
+  ##
+  # Plain HTTP forwarder / ACME challenge forwarder
+  ##
+
+  server {
+    listen                80 default_server;
+    listen                [::]:80 default_server;
+
+    # Forward acme challenges to nginx-letsencrypt daemon
+    location ~ /.well-known/acme-challenge {
+      proxy_set_header    Host $host;
+      proxy_set_header    X-Forwarded-For $remote_addr;
+      proxy_pass          http://127.0.0.1:{{ nginx_letsencrypt_port }};
+    }
+
+    location / {
+      return 301 https://$host$request_uri;
+    }
+  }
+
+  ###
+  # Custom servers
+  ###
+{% for server in nginx_letsencrypt_config.servers %}
+
+  server {
+{% for listen in server.listen %}
+    listen        {{ listen }};
+{% endfor %}
+    server_name   {{ server.server_names | default([server.server_name]) | join(' ') }};
+{% if server.server_lines is defined %}
+
+{% for line in server.server_lines %}
+    {{ line }}
+{% endfor %}
+{% endif %}
+{% for location in server.locations | default([]) %}
+
+    location {{ location.path }} {
+{% for line in location.location_lines %}
+      {{ line }}
+{% endfor %}
+{% if location.target is defined %}
+
+      return 301 {{ location.target }}{{ location.target_path | default('$request_uri') }};
+{% endif %}
+    }
+{% endfor %}
+  }
+{% endfor %}
+
+}
+
+# vim: set ft=nginx:
