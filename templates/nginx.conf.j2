@@ -109,7 +109,7 @@ http {
 {% for location in server.locations | default([]) %}
 
     location {{ location.path }} {
-{% for line in location.location_lines %}
+{% for line in location.location_lines | default([]) %}
       {{ line }}
 {% endfor %}
 {% if location.target is defined %}
