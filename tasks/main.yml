@@ -3,6 +3,7 @@
 - name: Install nginx package
   apt:
     name: nginx
+    cache_valid_time: 86400
 
 - name: Ensure nginx service is disabled and stopped
   systemd:
