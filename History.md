@@ -1,3 +1,7 @@
+# 0.3.2 / 2018-03-27
+
+  * Fix: Attribute name
+
 # 0.3.1 / 2018-03-27
 
   * Fix: Do not display changes on query tasks
