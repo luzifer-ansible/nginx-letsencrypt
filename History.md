@@ -1,3 +1,7 @@
+# 0.3.1 / 2018-03-27
+
+  * Fix: Do not display changes on query tasks
+
 # 0.3.0 / 2018-03-19
 
   * Use `cache_valid_time` for apt module
