@@ -14,6 +14,7 @@
 - name: Get current nginx-letsencrypt version
   shell: "/usr/local/bin/nginx-letsencrypt --version || true"
   check_mode: no
+  changed: no
   register: nginx_letsencrypt_version_cmd
 
 - name: Download nginx-letsencrypt release
