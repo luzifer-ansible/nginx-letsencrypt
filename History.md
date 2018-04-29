@@ -1,3 +1,7 @@
+# 0.4.0 / 2018-04-29
+
+  * By default enable `ssl_session_cache`
+
 # 0.3.2 / 2018-03-27
 
   * Fix: Attribute name
