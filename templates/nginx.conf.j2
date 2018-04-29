@@ -34,6 +34,7 @@ http {
   ssl_ciphers               {{ nginx_letsencrypt_config.ssl_ciphers | default('ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA256') }};
   ssl_prefer_server_ciphers {{ nginx_letsencrypt_config.ssl_prefer_server_ciphers | default('on') }};
   ssl_buffer_size           {{ nginx_letsencrypt_config.ssl_buffer_size | default('8k') }};
+  ssl_session_cache         {{ nginx_letsencrypt_config.ssl_session_cache | default('shared:ssl_session_cache:10m') }};
   ssl_stapling              {{ nginx_letsencrypt_config.ssl_stapling | default('on') }};
   ssl_stapling_verify       {{ nginx_letsencrypt_config.ssl_stapling_verify | default('on') }};
 
